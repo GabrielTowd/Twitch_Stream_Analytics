@@ -16,8 +16,12 @@ def get_game_id(game):
     else :
         return None
 
-def get_streams_datas(game_id):
-    response = requests.get(api_url_base + '/streams?game_id=' + game_id, headers=api_header)
+def get_streams_datas(game_id, language):
+    if language != '' :
+        response = requests.get(api_url_base + '/streams?language=' + language + '&game_id=' + game_id, headers=api_header)
+    else :
+        response = requests.get(api_url_base + '/streams?game_id=' + game_id, headers=api_header)
+
     if response.status_code == 200: 
         streams = json.loads(response.content.decode('utf-8'))['data']
     else :
@@ -40,19 +44,26 @@ def get_streams_datas(game_id):
                 "started_at": stream['started_at']
             }
             top_twenty.append(top_streamer)
-    
+
     data = {
         "views_count": views_count,
         "top_twenty": top_twenty,
         "streamer_count": streamer_count
     }
-
-    date = datetime.datetime.now()
-
-    with open(str(date.year) + '-' + str(date.month) + '-' + str(date.day) + '-' + str(date.hour) + '-' + game_name + '.json', 'w') as write_file:
-        json.dump(data, write_file)
+    return data
 
 if __name__ == "__main__":
     game_id = get_game_id(game_name)
-    get_streams_datas(game_id)
+    data_general = get_streams_datas(game_id, '')
+    data_fr = get_streams_datas(game_id, 'fr')
+
+    data = {
+        "all": data_general,
+        "fr": data_fr
+    }
+
+    date = datetime.datetime.now()
+    
+    with open(str(date.year) + '-' + str(date.month) + '-' + str(date.day) + '-' + str(date.hour) + '-' + game_name + '.json', 'w') as write_file:
+        json.dump(data, write_file)
     pass
